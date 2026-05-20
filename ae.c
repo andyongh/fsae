@@ -87,7 +87,13 @@ static monotime getMonotonicUs(void) {
 }
 
 // #include "config.h"
+#if defined(__linux__)
 #include "ae_epoll.c"
+#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#include "ae_kqueue.c"
+#else
+#error "No supported multiplexing API found for this platform."
+#endif
 
 
 aeEventLoop *aeCreateEventLoop(int setsize) {
@@ -188,7 +194,7 @@ void aeStop(aeEventLoop *eventLoop) {
 int aeCreateFileEvent(aeEventLoop *eventLoop, int fd, int mask,
         aeFileProc *proc, void *clientData)
 {
-    if (fd >= eventLoop->setsize) {
+    if (fd < 0 || fd >= eventLoop->setsize) {
         errno = ERANGE;
         return AE_ERR;
     }
@@ -207,7 +213,7 @@ int aeCreateFileEvent(aeEventLoop *eventLoop, int fd, int mask,
 
 void aeDeleteFileEvent(aeEventLoop *eventLoop, int fd, int mask)
 {
-    if (fd >= eventLoop->setsize) return;
+    if (fd < 0 || fd >= eventLoop->setsize) return;
     aeFileEvent *fe = &eventLoop->events[fd];
     if (fe->mask == AE_NONE) return;
 
@@ -228,7 +234,7 @@ void aeDeleteFileEvent(aeEventLoop *eventLoop, int fd, int mask)
 }
 
 void *aeGetFileClientData(aeEventLoop *eventLoop, int fd) {
-    if (fd >= eventLoop->setsize) return NULL;
+    if (fd < 0 || fd >= eventLoop->setsize) return NULL;
     aeFileEvent *fe = &eventLoop->events[fd];
     if (fe->mask == AE_NONE) return NULL;
 
@@ -236,7 +242,7 @@ void *aeGetFileClientData(aeEventLoop *eventLoop, int fd) {
 }
 
 int aeGetFileEvents(aeEventLoop *eventLoop, int fd) {
-    if (fd >= eventLoop->setsize) return 0;
+    if (fd < 0 || fd >= eventLoop->setsize) return 0;
     aeFileEvent *fe = &eventLoop->events[fd];
 
     return fe->mask;
