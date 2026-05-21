@@ -45,14 +45,6 @@
 #include <errno.h>
 #include <fcntl.h>
 
-#ifdef USE_JEMALLOC
-#include <jemalloc/jemalloc.h>
-#define malloc(size)        je_malloc(size)
-#define calloc(count,size)  je_calloc(count,size)
-#define realloc(ptr,size)   je_realloc(ptr,size)
-#define free(ptr)           je_free(ptr)
-#endif
-
 /* Enable the FD_CLOEXEC on the given fd to avoid fd leaks.
  * This function should be invoked for fd's on specific places
  * where fork + execve system calls are called. */

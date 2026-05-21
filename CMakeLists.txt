@@ -4,6 +4,29 @@
     include(CTest)
     enable_testing()
 
+    if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+        # Get macOS major.minor version
+        execute_process(
+            COMMAND sh -c "sw_vers -productVersion | cut -d. -f1-2"
+            OUTPUT_VARIABLE MACOSX_TARGET
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+
+        # Set the deployment target for CMake and child processes
+        set(ENV{MACOSX_DEPLOYMENT_TARGET} "${MACOSX_TARGET}")
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "${MACOSX_TARGET}")
+
+        # Force load jemalloc on macOS so its zone allocator constructor is not optimized out
+        set(JEMALLOC_LINK "-Wl,-force_load,${CMAKE_CURRENT_SOURCE_DIR}/deps/jemalloc/lib/libjemalloc.a" "-lc++")
+    else()
+        # Force load jemalloc on Linux so its weak symbols override glibc malloc
+        set(JEMALLOC_LINK "-Wl,--whole-archive" "${CMAKE_CURRENT_SOURCE_DIR}/deps/jemalloc/lib/libjemalloc.a" "-Wl,--no-whole-archive" "-lstdc++")
+    endif()
+    string(REPLACE ";" " " JEMALLOC_LINK_STR "${JEMALLOC_LINK}")
+    # Append to global executable and shared library linker flags
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${JEMALLOC_LINK_STR}")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${JEMALLOC_LINK_STR}")
+
     # -- jemalloc submodule: auto-init if missing ---------------------------------
     find_package(Git REQUIRED)
     if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/deps/jemalloc/autogen.sh")
