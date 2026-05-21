@@ -45,9 +45,13 @@
 #include <errno.h>
 #include <fcntl.h>
 
-#define zmalloc malloc
-#define zrealloc realloc
-#define zfree free
+#ifdef USE_JEMALLOC
+#include <jemalloc/jemalloc.h>
+#define malloc(size)        je_malloc(size)
+#define calloc(count,size)  je_calloc(count,size)
+#define realloc(ptr,size)   je_realloc(ptr,size)
+#define free(ptr)           je_free(ptr)
+#endif
 
 /* Enable the FD_CLOEXEC on the given fd to avoid fd leaks.
  * This function should be invoked for fd's on specific places
@@ -102,9 +106,9 @@ aeEventLoop *aeCreateEventLoop(int setsize) {
 
     monotonicInit();    /* just in case the calling app didn't initialize */
 
-    if ((eventLoop = zmalloc(sizeof(*eventLoop))) == NULL) goto err;
-    eventLoop->events = zmalloc(sizeof(aeFileEvent)*setsize);
-    eventLoop->fired = zmalloc(sizeof(aeFiredEvent)*setsize);
+    if ((eventLoop = malloc(sizeof(*eventLoop))) == NULL) goto err;
+    eventLoop->events = malloc(sizeof(aeFileEvent)*setsize);
+    eventLoop->fired = malloc(sizeof(aeFiredEvent)*setsize);
     if (eventLoop->events == NULL || eventLoop->fired == NULL) goto err;
     eventLoop->setsize = setsize;
     eventLoop->timeEventHead = NULL;
@@ -123,9 +127,9 @@ aeEventLoop *aeCreateEventLoop(int setsize) {
 
 err:
     if (eventLoop) {
-        zfree(eventLoop->events);
-        zfree(eventLoop->fired);
-        zfree(eventLoop);
+        free(eventLoop->events);
+        free(eventLoop->fired);
+        free(eventLoop);
     }
     return NULL;
 }
@@ -161,8 +165,8 @@ int aeResizeSetSize(aeEventLoop *eventLoop, int setsize) {
     if (eventLoop->maxfd >= setsize) return AE_ERR;
     if (aeApiResize(eventLoop,setsize) == -1) return AE_ERR;
 
-    eventLoop->events = zrealloc(eventLoop->events,sizeof(aeFileEvent)*setsize);
-    eventLoop->fired = zrealloc(eventLoop->fired,sizeof(aeFiredEvent)*setsize);
+    eventLoop->events = realloc(eventLoop->events,sizeof(aeFileEvent)*setsize);
+    eventLoop->fired = realloc(eventLoop->fired,sizeof(aeFiredEvent)*setsize);
     eventLoop->setsize = setsize;
 
     /* Make sure that if we created new slots, they are initialized with
@@ -174,17 +178,17 @@ int aeResizeSetSize(aeEventLoop *eventLoop, int setsize) {
 
 void aeDeleteEventLoop(aeEventLoop *eventLoop) {
     aeApiFree(eventLoop);
-    zfree(eventLoop->events);
-    zfree(eventLoop->fired);
+    free(eventLoop->events);
+    free(eventLoop->fired);
 
     /* Free the time events list. */
     aeTimeEvent *next_te, *te = eventLoop->timeEventHead;
     while (te) {
         next_te = te->next;
-        zfree(te);
+        free(te);
         te = next_te;
     }
-    zfree(eventLoop);
+    free(eventLoop);
 }
 
 void aeStop(aeEventLoop *eventLoop) {
@@ -255,7 +259,7 @@ long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
     long long id = eventLoop->timeEventNextId++;
     aeTimeEvent *te;
 
-    te = zmalloc(sizeof(*te));
+    te = malloc(sizeof(*te));
     if (te == NULL) return AE_ERR;
     te->id = id;
     te->when = getMonotonicUs() + milliseconds * 1000;
@@ -340,7 +344,7 @@ static int processTimeEvents(aeEventLoop *eventLoop) {
                 te->finalizerProc(eventLoop, te->clientData);
                 now = getMonotonicUs();
             }
-            zfree(te);
+            free(te);
             te = next;
             continue;
         }

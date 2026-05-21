@@ -39,18 +39,18 @@ typedef struct aeApiState {
 } aeApiState;
 
 static int aeApiCreate(aeEventLoop *eventLoop) {
-    aeApiState *state = zmalloc(sizeof(aeApiState));
+    aeApiState *state = malloc(sizeof(aeApiState));
 
     if (!state) return -1;
-    state->events = zmalloc(sizeof(struct kevent)*eventLoop->setsize);
+    state->events = malloc(sizeof(struct kevent)*eventLoop->setsize);
     if (!state->events) {
-        zfree(state);
+        free(state);
         return -1;
     }
     state->kqfd = kqueue();
     if (state->kqfd == -1) {
-        zfree(state->events);
-        zfree(state);
+        free(state->events);
+        free(state);
         return -1;
     }
     anetCloexec(state->kqfd);
@@ -61,7 +61,7 @@ static int aeApiCreate(aeEventLoop *eventLoop) {
 static int aeApiResize(aeEventLoop *eventLoop, int setsize) {
     aeApiState *state = eventLoop->apidata;
 
-    state->events = zrealloc(state->events, sizeof(struct kevent)*setsize);
+    state->events = realloc(state->events, sizeof(struct kevent)*setsize);
     return 0;
 }
 
@@ -69,8 +69,8 @@ static void aeApiFree(aeEventLoop *eventLoop) {
     aeApiState *state = eventLoop->apidata;
 
     close(state->kqfd);
-    zfree(state->events);
-    zfree(state);
+    free(state->events);
+    free(state);
 }
 
 static int aeApiAddEvent(aeEventLoop *eventLoop, int fd, int mask) {

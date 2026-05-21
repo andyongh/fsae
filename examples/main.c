@@ -63,7 +63,7 @@ void readFromClientHandler(struct aeEventLoop *eventLoop, int fd, void *clientDa
             fprintf(stderr, "[ERROR] Read error from client %s:%d: %s\n",
                     client->ip, client->port, strerror(errno));
         }
-        
+
         // Clean up client connection
         aeDeleteFileEvent(eventLoop, fd, AE_READABLE);
         close(fd);
@@ -84,7 +84,7 @@ void readFromClientHandler(struct aeEventLoop *eventLoop, int fd, void *clientDa
     // Echo the message back to client (with original newline if it was stripped)
     char echo_buf[BUF_SIZE + 2];
     int len = snprintf(echo_buf, sizeof(echo_buf), "%s\n", buffer);
-    
+
     // In a fully robust production server, we would use AE_WRITABLE to handle write blocks.
     // For this classic example, a direct write is standard and keeps the logic clear.
     if (write(fd, echo_buf, len) == -1) {
