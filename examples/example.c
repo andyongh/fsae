@@ -37,7 +37,7 @@ int setNonBlocking(int fd) {
 }
 
 // 5-second periodic timer callback
-int statsTimerHandler(struct aeEventLoop *eventLoop, long long id, void *clientData) {
+long long statsTimerHandler(struct aeEventLoop *eventLoop, long long id, void *clientData) {
     ServerStats *stats = (ServerStats *)clientData;
     stats->uptime_seconds += 5;
     printf("[STATS] Uptime: %lds | Active Connections: %d | Total Connections: %d\n",
