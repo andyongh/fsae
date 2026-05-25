@@ -14,10 +14,6 @@ LIBS = deps/luajit/src/libluajit.a \
 
 # Source files for the framework
 SRCS = src/ae.c \
-       src/anet.c \
-       src/serverassert.c \
-       src/zmalloc.c \
-       src/strl.c \
        src/monotonic.c
 
 OBJS = $(SRCS:.c=.o)
