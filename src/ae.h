@@ -34,6 +34,9 @@
 #define __AE_H__
 
 #include "monotonic.h"
+// #include <stdint.h>
+// typedef uint64_t monotime;
+
 #include <pthread.h>
 
 #define AE_OK 0
