@@ -31,39 +31,7 @@
  */
 
 #include "ae.h"
-// #include "anet.h"
-// #include "serverassert.h"
 #include <assert.h>
-#ifndef panic
-#define panic(fmt, ...) do { \
-    fprintf(stderr, fmt "\n", ##__VA_ARGS__); \
-    abort(); \
-} while (0)
-#endif
-
-/* Enable the FD_CLOEXEC on the given fd to avoid fd leaks.
- * This function should be invoked for fd's on specific places
- * where fork + execve system calls are called. */
-#include <errno.h>
-#include <fcntl.h>
-int anetCloexec(int fd) {
-    int r;
-    int flags;
-
-    do {
-        r = fcntl(fd, F_GETFD);
-    } while (r == -1 && errno == EINTR);
-
-    if (r == -1 || (r & FD_CLOEXEC)) return r;
-
-    flags = r | FD_CLOEXEC;
-
-    do {
-        r = fcntl(fd, F_SETFD, flags);
-    } while (r == -1 && errno == EINTR);
-
-    return r;
-}
 
 #include <stdio.h>
 #include <sys/time.h>
@@ -75,14 +43,6 @@ int anetCloexec(int fd) {
 #include <time.h>
 #include <errno.h>
 
-// #include "zmalloc.h"
-#define zmalloc malloc
-#define zrealloc realloc
-#define zcalloc calloc
-#define zfree free
-
-
-#include "config.h"
 
 /* Include the best multiplexing layer supported by this system.
  * The following should be ordered by performances, descending. */

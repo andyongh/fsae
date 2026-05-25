@@ -38,6 +38,8 @@ int setNonBlocking(int fd) {
 
 // 5-second periodic timer callback
 long long statsTimerHandler(struct aeEventLoop *eventLoop, long long id, void *clientData) {
+    (void)eventLoop;
+    (void)id;
     ServerStats *stats = (ServerStats *)clientData;
     stats->uptime_seconds += 5;
     printf("[STATS] Uptime: %lds | Active Connections: %d | Total Connections: %d\n",
@@ -48,6 +50,7 @@ long long statsTimerHandler(struct aeEventLoop *eventLoop, long long id, void *c
 
 // Client read event handler
 void readFromClientHandler(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask) {
+    (void)mask;
     ClientState *client = (ClientState *)clientData;
     char buffer[BUF_SIZE];
     ssize_t nread;
@@ -95,6 +98,7 @@ void readFromClientHandler(struct aeEventLoop *eventLoop, int fd, void *clientDa
 
 // TCP listener accept event handler
 void acceptConnectionHandler(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask) {
+    (void)mask;
     ServerStats *stats = (ServerStats *)clientData;
     int client_fd;
     struct sockaddr_in client_addr;
@@ -145,6 +149,10 @@ int main(int argc, const char *argv[]) {
     int server_fd;
     struct sockaddr_in server_addr;
     ServerStats stats = {0};
+    int port = PORT;
+    if (argc > 1) {
+        port = atoi(argv[1]);
+    }
 
     // Create TCP socket
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -163,17 +171,17 @@ int main(int argc, const char *argv[]) {
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(PORT);
+    server_addr.sin_port = htons(port);
 
     if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
-        fprintf(stderr, "[FATAL] Failed to bind to port %d: %s\n", PORT, strerror(errno));
+        fprintf(stderr, "[FATAL] Failed to bind to port %d: %s\n", port, strerror(errno));
         close(server_fd);
         return 1;
     }
 
     // Start listening
     if (listen(server_fd, BACKLOG) == -1) {
-        fprintf(stderr, "[FATAL] Failed to listen on port %d: %s\n", PORT, strerror(errno));
+        fprintf(stderr, "[FATAL] Failed to listen on port %d: %s\n", port, strerror(errno));
         close(server_fd);
         return 1;
     }
@@ -185,7 +193,7 @@ int main(int argc, const char *argv[]) {
     }
 
     printf("===================================================\n");
-    printf("  fsae Event Loop TCP Echo Server running on port %d\n", PORT);
+    printf("  fsae Event Loop TCP Echo Server running on port %d\n", port);
     printf("===================================================\n");
     fflush(stdout);
 

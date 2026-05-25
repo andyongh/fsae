@@ -34,8 +34,55 @@
 #define __AE_H__
 
 #include "monotonic.h"
-// #include <stdint.h>
-// typedef uint64_t monotime;
+
+
+/* Test for polling API */
+#ifdef __linux__
+#define HAVE_EPOLL 1
+#endif
+
+/* Detect for kqueue */
+#if (defined(__APPLE__) && defined(MAC_OS_10_6_DETECTED)) || defined(__DragonFly__) || defined(__FreeBSD__) || \
+    defined(__OpenBSD__) || defined(__NetBSD__)
+#define HAVE_KQUEUE 1
+#endif
+
+#define zmalloc malloc
+#define zrealloc realloc
+#define zcalloc calloc
+#define zfree free
+
+#ifndef panic
+#define panic(fmt, ...) do { \
+    fprintf(stderr, fmt "\n", ##__VA_ARGS__); \
+    abort(); \
+} while (0)
+#endif
+
+
+/* Enable the FD_CLOEXEC on the given fd to avoid fd leaks.
+ * This function should be invoked for fd's on specific places
+ * where fork + execve system calls are called. */
+#include <errno.h>
+#include <fcntl.h>
+static inline int anetCloexec(int fd) {
+    int r;
+    int flags;
+
+    do {
+        r = fcntl(fd, F_GETFD);
+    } while (r == -1 && errno == EINTR);
+
+    if (r == -1 || (r & FD_CLOEXEC)) return r;
+
+    flags = r | FD_CLOEXEC;
+
+    do {
+        r = fcntl(fd, F_SETFD, flags);
+    } while (r == -1 && errno == EINTR);
+
+    return r;
+}
 
 #include <pthread.h>
 
