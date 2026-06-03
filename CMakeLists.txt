@@ -73,9 +73,8 @@
     )
     add_dependencies(jemalloc_imported jemalloc_project)
 
-    # -- Build the fsae event-loop library ----------------------------------------
-    add_library(fsae STATIC ae.c)
-    target_include_directories(fsae PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    add_library(fsae STATIC src/ae.c)
+    target_include_directories(fsae PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
     target_compile_definitions(fsae PRIVATE USE_JEMALLOC)
     target_link_libraries(fsae PRIVATE jemalloc_imported)
     add_dependencies(fsae jemalloc_project)

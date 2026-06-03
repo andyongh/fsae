@@ -13,8 +13,7 @@ LIBS = deps/luajit/src/libluajit.a \
        -lm -ldl
 
 # Source files for the framework
-SRCS = src/ae.c \
-       src/monotonic.c
+SRCS = src/ae.c
 
 OBJS = $(SRCS:.c=.o)
 

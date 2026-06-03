@@ -32,7 +32,6 @@
 
 #include "ae.h"
 #include <assert.h>
-
 #include <stdio.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -42,23 +41,10 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
+#include <stddef.h>
+#include "internal.h"
 
 
-/* Include the best multiplexing layer supported by this system.
- * The following should be ordered by performances, descending. */
-#ifdef HAVE_EVPORT
-#include "ae_evport.c"
-#else
-#ifdef HAVE_EPOLL
-#include "ae_epoll.c"
-#else
-#ifdef HAVE_KQUEUE
-#include "ae_kqueue.c"
-#else
-#include "ae_select.c"
-#endif
-#endif
-#endif
 
 #define AE_LOCK(eventLoop)                                         \
     if ((eventLoop)->flags & AE_PROTECT_POLL) {                    \
