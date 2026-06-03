@@ -80,7 +80,7 @@
     add_dependencies(fsae jemalloc_project)
 
     # -- Build the example executable ---------------------------------------------
-    add_executable(fsae_example examples/main.c)
+    add_executable(fsae_example examples/example.c)
     if(APPLE)
         target_link_options(fsae_example PRIVATE "-Wl,-force_flat_namespace")
     endif()
