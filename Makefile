@@ -3,7 +3,7 @@ CFLAGS = -Wall -Wextra -O2 -g -fPIC
 LDFLAGS = -pthread
 
 # Includes
-INCLUDES = -I./include -I./src \
+INCLUDES = -I./include -I./ \
            -I./deps/luajit/src \
            -I./deps/jemalloc/include
 
@@ -13,12 +13,12 @@ LIBS = deps/luajit/src/libluajit.a \
        -lm -ldl
 
 # Source files for the framework
-SRCS = src/ae.c
+# SRCS = src/ae.c
 
-OBJS = $(SRCS:.c=.o)
+# OBJS = $(SRCS:.c=.o)
 
 # Targets
-TARGET_LIB = libfe.a
+# TARGET_LIB = libfe.a
 
 .PHONY: all clean deps deps-clean examples test
 
@@ -39,16 +39,14 @@ $(TARGET_LIB): $(OBJS)
 %.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-examples: $(TARGET_LIB)
-	$(CC) $(CFLAGS) $(INCLUDES) examples/example.c $(TARGET_LIB) $(LIBS) -o fsae_example
-# 	$(CC) $(CFLAGS) $(INCLUDES) examples/example_lua.c $(TARGET_LIB) $(LIBS) -o example_lua
+examples: ae.h
+	$(CC) $(CFLAGS) $(INCLUDES) examples/example.c -o fsae_example
+	$(CC) $(CFLAGS) $(INCLUDES) examples/timer.c -o timer
 
-test: $(TARGET_LIB)
-# 	$(CC) $(CFLAGS) $(INCLUDES) test/test_core.c $(TARGET_LIB) $(LIBS) -o test_core
-# 	./test_core
+timer: ae.h
 
 clean:
-	rm -f $(OBJS) $(TARGET_LIB) fsae_example test_core
+	rm -f $(OBJS) fsae_example timer
 
 deps-clean:
 	-cd deps/jemalloc && $(MAKE) clean

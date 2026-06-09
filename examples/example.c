@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#define AE_IMPLEMENTATION
 #include "ae.h"
 
 #define PORT 8888
@@ -92,8 +93,9 @@ void readFromClientHandler(struct aeEventLoop *eventLoop, int fd, void *clientDa
     // For this classic example, a direct write is standard and keeps the logic clear.
     if (write(fd, echo_buf, len) == -1) {
         fprintf(stderr, "[WARNING] Write failed to client %s:%d: %s\n",
-                client->ip, client->port, strerror(errno));
+            client->ip, client->port, strerror(errno));
     }
+    write(fd, " -- from server\n", 16);
 }
 
 // TCP listener accept event handler
