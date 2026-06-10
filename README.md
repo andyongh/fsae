@@ -4,10 +4,14 @@ Event library extracted from Redis/Valkey
 
 ## USAGE
    In ONE .c/.cpp file, define the implementation macro before including:
-      #define AE_IMPLEMENTATION
-      #include "ae.h"
+   ```c
+   #define AE_IMPLEMENTATION
+   #include "ae.h"
+  ```
   In all other files, include normally (no macro needed):
-        #include "ae.h"
+   ```c
+   #include "ae.h"
+   ```
 
 
 ## test
